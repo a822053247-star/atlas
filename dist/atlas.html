@@ -3,58 +3,901 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="一份可交互的深海生物发光图鉴，从暮光带下潜到深渊带。">
+  <meta name="description" content="微光深处 · 深海生物观测图鉴">
   <meta name="theme-color" content="#02080f">
-  <title>微光深处｜深海生物发光图鉴</title>
+  <title>微光深处｜观测图鉴</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2302080f'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%236fffe9'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%236fffe9' stroke-opacity='.35'/%3E%3C/svg%3E">
   <style>
-    :root{--ink:#eaf8f7;--muted:#8fa8ad;--cyan:#6fffe9;--blue:#2a7fff;--panel:rgba(8,24,34,.74);--line:rgba(151,244,236,.14);--max:1180px}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:#02080f;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
-    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 74% 13%,rgba(31,127,160,.16),transparent 28%),linear-gradient(180deg,#04131d 0%,#02080f 45%,#010407 100%);z-index:-2}
-    body:after{content:"";position:fixed;inset:0;opacity:.18;pointer-events:none;background-image:radial-gradient(circle,#a4fff3 0 1px,transparent 1.5px);background-size:47px 53px;mask-image:linear-gradient(to bottom,#000,transparent 72%);z-index:-1}
-    a{color:inherit}.wrap{width:min(var(--max),calc(100% - 40px));margin:auto}
-    header{height:74px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
-    .brand{display:flex;gap:11px;align-items:center;font-size:.82rem;letter-spacing:.18em;font-weight:700}.brand i{width:10px;height:10px;background:var(--cyan);border-radius:50%;box-shadow:0 0 18px var(--cyan)}
-    nav a{text-decoration:none;color:var(--muted);font-size:.86rem;margin-left:26px}nav a:hover{color:var(--ink)}
-    .hero{min-height:calc(100vh - 74px);display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center;padding:72px 0}
-    .eyebrow{color:var(--cyan);font-size:.76rem;letter-spacing:.25em;text-transform:uppercase;margin-bottom:22px}
-    h1{font-family:Georgia,"Songti SC",serif;font-size:clamp(4.2rem,9vw,8.4rem);line-height:.78;letter-spacing:-.07em;margin:0 0 36px;font-weight:500}
-    h1 span{display:block;color:transparent;-webkit-text-stroke:1px rgba(234,248,247,.55);margin-left:.82em}
-    .intro{max-width:560px;color:#b5c8ca;font-size:1.08rem;line-height:1.9;margin:0}.scroll{display:inline-flex;align-items:center;gap:12px;margin-top:38px;text-decoration:none;font-size:.88rem;color:var(--cyan)}.scroll b{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(111,255,233,.4);border-radius:50%;font-weight:400}
-    .sonar{position:relative;aspect-ratio:1;border-radius:50%;border:1px solid rgba(111,255,233,.22);display:grid;place-items:center;background:radial-gradient(circle,rgba(111,255,233,.14) 0 2%,transparent 2.5% 17%,rgba(111,255,233,.08) 17.3% 17.7%,transparent 18% 34%,rgba(111,255,233,.08) 34.3% 34.7%,transparent 35% 50%,rgba(111,255,233,.08) 50.3% 50.7%,transparent 51%);box-shadow:inset 0 0 70px rgba(15,98,122,.13)}
-    .sonar:before{content:"";position:absolute;inset:7%;border-radius:50%;background:conic-gradient(from 220deg,transparent 0 68%,rgba(111,255,233,.12) 86%,rgba(111,255,233,.5) 99%,transparent);animation:sweep 7s linear infinite}.sonar:after{content:"▼ 3,800 m";position:absolute;bottom:14%;font-size:.72rem;letter-spacing:.15em;color:var(--muted)}
-    .pulse{width:18px;height:18px;border-radius:50%;background:var(--cyan);box-shadow:0 0 20px var(--cyan),0 0 70px #18ffe0;animation:pulse 2.4s ease-out infinite}.mark{position:absolute;width:7px;height:7px;border-radius:50%;background:#b2fff6;box-shadow:0 0 15px var(--cyan)}.m1{left:27%;top:31%}.m2{right:21%;top:44%}.m3{left:38%;bottom:19%}
-    @keyframes sweep{to{transform:rotate(360deg)}}@keyframes pulse{50%{box-shadow:0 0 15px var(--cyan),0 0 95px #18ffe0;transform:scale(1.4)}}
-    .explore{padding:96px 0 124px;border-top:1px solid var(--line)}.section-head{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:42px}.section-head h2{font:500 clamp(2.4rem,5vw,4.5rem)/1 Georgia,"Songti SC",serif;margin:0}.section-head p{color:var(--muted);margin:0;max-width:360px;line-height:1.7}
-    .depth-control{display:grid;grid-template-columns:110px 1fr 90px;gap:20px;align-items:center;margin:26px 0 48px;color:var(--muted);font-size:.8rem}.depth-control output{text-align:right;color:var(--cyan);font-variant-numeric:tabular-nums;font-size:1rem}input[type=range]{appearance:none;width:100%;height:2px;background:linear-gradient(90deg,var(--cyan) var(--fill,42%),rgba(255,255,255,.13) var(--fill,42%));outline:0}input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border:2px solid #031019;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 16px rgba(111,255,233,.5);cursor:pointer}
-    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{position:relative;min-height:360px;padding:28px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,rgba(12,35,47,.78),rgba(3,11,17,.9));overflow:hidden;transition:.35s ease}.card:hover,.card:focus-within{transform:translateY(-6px);border-color:rgba(111,255,233,.36)}.card[hidden]{display:none}.card .depth{font-size:.72rem;letter-spacing:.14em;color:var(--cyan)}.card h3{font:500 2rem/1.1 Georgia,"Songti SC",serif;margin:20px 0 8px}.latin{font-style:italic;color:var(--muted);font-size:.78rem}.card p{color:#aec0c2;line-height:1.75;font-size:.94rem;margin-top:92px}.glow{position:absolute;width:150px;height:150px;border-radius:50%;right:-34px;top:16px;background:radial-gradient(circle,var(--g) 0 3%,color-mix(in srgb,var(--g) 32%,transparent) 4% 11%,transparent 40%);filter:blur(.2px);opacity:.9}.tag{display:inline-block;margin-top:12px;border:1px solid var(--line);border-radius:999px;padding:7px 11px;color:#c9dcdd;font-size:.72rem}
-    .fact{margin-top:18px;padding:18px 22px;border-left:2px solid var(--cyan);background:rgba(111,255,233,.05);color:#cce0e0;line-height:1.7}.empty{display:none;text-align:center;padding:54px;color:var(--muted);border:1px dashed var(--line);border-radius:20px}.empty.show{display:block}
-    footer{border-top:1px solid var(--line);padding:32px 0 52px;color:#667d82;font-size:.78rem;display:flex;justify-content:space-between;gap:20px}
-    @media(max-width:780px){.wrap{width:min(100% - 28px,var(--max))}nav{display:none}.hero{grid-template-columns:1fr;gap:36px;padding:60px 0 80px}.sonar{width:min(90%,430px);margin:auto}h1{font-size:clamp(4rem,22vw,6.8rem)}.section-head{display:block}.section-head p{margin-top:20px}.depth-control{grid-template-columns:1fr auto}.depth-control label{grid-column:1/-1}.cards{grid-template-columns:1fr}.card{min-height:320px}.card p{margin-top:74px}footer{display:block}footer span{display:block;margin-top:8px}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sonar:before,.pulse{animation:none}.card{transition:none}}
+    :root{
+      --ink:#eaf8f7;
+      --muted:#8fa8ad;
+      --cyan:#6fffe9;
+      --line:rgba(151,244,236,.14);
+      --panel:rgba(7,23,33,.78);
+      --max:1180px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      overflow-x:hidden;
+      color:var(--ink);
+      background:#02080f;
+      font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 72% 12%,rgba(31,127,160,.16),transparent 30%),
+        linear-gradient(180deg,#04131d 0%,#02080f 48%,#010407 100%);
+    }
+
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      opacity:.16;
+      pointer-events:none;
+      background-image:radial-gradient(circle,#a4fff3 0 1px,transparent 1.5px);
+      background-size:47px 53px;
+      mask-image:linear-gradient(to bottom,#000,transparent 76%);
+    }
+
+    a{color:inherit}
+    button,input{font:inherit}
+    .wrap{width:min(var(--max),calc(100% - 40px));margin:auto}
+
+    header{
+      height:74px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid var(--line);
+    }
+
+    .brand{
+      display:flex;
+      gap:11px;
+      align-items:center;
+      font-size:.82rem;
+      letter-spacing:.18em;
+      font-weight:700;
+    }
+
+    .brand i{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:var(--cyan);
+      box-shadow:0 0 18px var(--cyan);
+    }
+
+    nav a{
+      margin-left:26px;
+      color:var(--muted);
+      font-size:.86rem;
+      text-decoration:none;
+    }
+
+    nav a:hover{color:var(--ink)}
+
+    .hero{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:54px;
+      align-items:end;
+      padding:76px 0 62px;
+    }
+
+    .eyebrow{
+      margin-bottom:20px;
+      color:var(--cyan);
+      font-size:.72rem;
+      letter-spacing:.25em;
+      text-transform:uppercase;
+    }
+
+    h1{
+      margin:0;
+      font:500 clamp(3.4rem,7vw,7rem)/.9 Georgia,"Songti SC",serif;
+      letter-spacing:-.055em;
+    }
+
+    h1 span{
+      display:block;
+      margin-left:.8em;
+      color:transparent;
+      -webkit-text-stroke:1px rgba(234,248,247,.5);
+    }
+
+    .intro{
+      max-width:570px;
+      margin:28px 0 0;
+      color:#b5c8ca;
+      font-size:1rem;
+      line-height:1.9;
+    }
+
+    .progress-panel{
+      padding:24px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:linear-gradient(145deg,rgba(12,35,47,.78),rgba(3,11,17,.9));
+      box-shadow:0 24px 70px rgba(0,0,0,.2);
+    }
+
+    .progress-label{
+      display:flex;
+      justify-content:space-between;
+      gap:20px;
+      color:var(--muted);
+      font-size:.75rem;
+      letter-spacing:.12em;
+    }
+
+    .progress-value{
+      margin:12px 0 18px;
+      font:500 3.4rem/1 Georgia,"Songti SC",serif;
+    }
+
+    .progress-value small{
+      color:var(--muted);
+      font:400 .95rem/1 system-ui,sans-serif;
+      letter-spacing:.08em;
+    }
+
+    .bar{
+      height:4px;
+      overflow:hidden;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+    }
+
+    .bar i{
+      display:block;
+      width:0;
+      height:100%;
+      border-radius:inherit;
+      background:var(--cyan);
+      box-shadow:0 0 14px rgba(111,255,233,.5);
+      transition:width .4s ease;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .stat{
+      padding:13px 14px;
+      border:1px solid rgba(151,244,236,.09);
+      border-radius:12px;
+      background:rgba(255,255,255,.025);
+    }
+
+    .stat small{
+      display:block;
+      margin-bottom:5px;
+      color:var(--muted);
+      font-size:.68rem;
+    }
+
+    .stat strong{
+      font-size:1.05rem;
+      font-weight:500;
+    }
+
+    .explore{
+      padding:60px 0 120px;
+      border-top:1px solid var(--line);
+    }
+
+    .section-head{
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+      gap:30px;
+      margin-bottom:30px;
+    }
+
+    .section-head h2{
+      margin:0;
+      font:500 clamp(2.2rem,5vw,4.2rem)/1 Georgia,"Songti SC",serif;
+    }
+
+    .section-head p{
+      max-width:390px;
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .depth-control{
+      display:grid;
+      grid-template-columns:110px 1fr 90px;
+      gap:20px;
+      align-items:center;
+      margin:28px 0 42px;
+      color:var(--muted);
+      font-size:.8rem;
+    }
+
+    .depth-control output{
+      color:var(--cyan);
+      text-align:right;
+      font-variant-numeric:tabular-nums;
+    }
+
+    input[type=range]{
+      appearance:none;
+      width:100%;
+      height:2px;
+      border:0;
+      outline:0;
+      background:
+        linear-gradient(
+          90deg,
+          var(--cyan) var(--fill,42%),
+          rgba(255,255,255,.13) var(--fill,42%)
+        );
+    }
+
+    input[type=range]::-webkit-slider-thumb{
+      appearance:none;
+      width:18px;
+      height:18px;
+      border:2px solid #031019;
+      border-radius:50%;
+      background:var(--cyan);
+      box-shadow:
+        0 0 0 1px var(--cyan),
+        0 0 16px rgba(111,255,233,.5);
+      cursor:pointer;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .card{
+      position:relative;
+      min-height:430px;
+      overflow:hidden;
+      padding:24px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        linear-gradient(145deg,rgba(12,35,47,.78),rgba(3,11,17,.92));
+      transition:transform .28s ease,border-color .28s ease;
+    }
+
+    .card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(111,255,233,.33);
+    }
+
+    .card[hidden]{display:none}
+
+    .card-head{
+      position:relative;
+      z-index:2;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .depth{
+      color:var(--cyan);
+      font-size:.68rem;
+      letter-spacing:.13em;
+    }
+
+    .status{
+      padding:5px 8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:.62rem;
+      letter-spacing:.08em;
+    }
+
+    .card.unlocked .status{
+      color:var(--cyan);
+      border-color:rgba(111,255,233,.28);
+      background:rgba(111,255,233,.05);
+    }
+
+    .visual{
+      position:relative;
+      height:150px;
+      display:grid;
+      place-items:center;
+      margin:18px -4px 14px;
+    }
+
+    .visual::before{
+      content:"";
+      position:absolute;
+      width:130px;
+      height:130px;
+      border-radius:50%;
+      background:
+        radial-gradient(circle,rgba(111,255,233,.18),rgba(42,127,255,.05) 38%,transparent 70%);
+      filter:blur(8px);
+    }
+
+    .visual img{
+      position:relative;
+      z-index:1;
+      width:min(72%,220px);
+      max-height:135px;
+      object-fit:contain;
+      filter:drop-shadow(0 0 18px rgba(111,255,233,.16));
+    }
+
+    .locked-visual{
+      position:relative;
+      z-index:1;
+      color:rgba(234,248,247,.16);
+      font:500 5.4rem/1 Georgia,serif;
+      text-shadow:0 0 24px rgba(111,255,233,.08);
+    }
+
+    .lantern-visual{
+      position:relative;
+      z-index:1;
+      width:190px;
+      height:90px;
+    }
+
+    .lantern-visual i{
+      position:absolute;
+      width:23px;
+      height:9px;
+      border-radius:70% 45% 45% 70%;
+      background:linear-gradient(90deg,rgba(150,230,220,.75),rgba(57,125,145,.45));
+      box-shadow:
+        0 0 6px rgba(111,255,233,1),
+        0 0 18px rgba(68,210,255,.6);
+    }
+
+    .lantern-visual i:nth-child(1){left:4%;top:35%}
+    .lantern-visual i:nth-child(2){left:19%;top:14%}
+    .lantern-visual i:nth-child(3){left:34%;top:54%}
+    .lantern-visual i:nth-child(4){left:48%;top:30%}
+    .lantern-visual i:nth-child(5){left:63%;top:58%}
+    .lantern-visual i:nth-child(6){left:76%;top:18%}
+    .lantern-visual i:nth-child(7){left:88%;top:44%}
+
+    .card h3{
+      margin:5px 0 7px;
+      font:500 1.7rem/1.15 Georgia,"Songti SC",serif;
+    }
+
+    .latin{
+      color:var(--muted);
+      font-size:.75rem;
+      font-style:italic;
+    }
+
+    .description{
+      min-height:72px;
+      margin:18px 0 0;
+      color:#aec0c2;
+      font-size:.88rem;
+      line-height:1.75;
+    }
+
+    .note{
+      margin-top:16px;
+      padding:13px 14px;
+      border-left:2px solid rgba(111,255,233,.55);
+      background:rgba(111,255,233,.04);
+      color:#bdd2d2;
+      font-size:.78rem;
+      line-height:1.65;
+    }
+
+    .observation{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:16px;
+      padding-top:14px;
+      border-top:1px solid var(--line);
+      color:var(--muted);
+      font-size:.72rem;
+    }
+
+    .observation strong{
+      color:var(--ink);
+      font-weight:500;
+    }
+
+    .card.locked .visual{
+      filter:grayscale(1);
+    }
+
+    .card.locked h3{
+      color:#70868a;
+      letter-spacing:.12em;
+    }
+
+    .card.locked .latin,
+    .card.locked .description,
+    .card.locked .note{
+      color:#53696d;
+    }
+
+    .empty{
+      display:none;
+      padding:48px;
+      border:1px dashed var(--line);
+      border-radius:18px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    .empty.show{display:block}
+
+    .fact{
+      margin-top:18px;
+      padding:18px 22px;
+      border-left:2px solid var(--cyan);
+      background:rgba(111,255,233,.05);
+      color:#cce0e0;
+      line-height:1.7;
+    }
+
+    .return{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:20;
+      padding:12px 18px;
+      border:1px solid rgba(111,255,233,.27);
+      border-radius:8px;
+      background:#102c36e8;
+      color:#b8efdc;
+      text-decoration:none;
+      backdrop-filter:blur(10px);
+    }
+
+    footer{
+      display:flex;
+      justify-content:space-between;
+      gap:20px;
+      padding:30px 0 48px;
+      border-top:1px solid var(--line);
+      color:#667d82;
+      font-size:.78rem;
+    }
+
+    @media(max-width:780px){
+      .wrap{width:min(100% - 28px,var(--max))}
+      nav{display:none}
+      .hero{grid-template-columns:1fr;gap:34px;padding:54px 0 46px}
+      h1{font-size:clamp(3.8rem,20vw,6rem)}
+      .section-head{display:block}
+      .section-head p{margin-top:18px}
+      .depth-control{grid-template-columns:1fr auto}
+      .depth-control label{grid-column:1/-1}
+      .cards{grid-template-columns:1fr}
+      .card{min-height:400px}
+      .return{right:14px;bottom:14px}
+      footer{display:block}
+      footer span{display:block;margin-top:8px}
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      .card,.bar i{transition:none}
+    }
   </style>
 </head>
+
 <body>
-  <a href="index.html" style="position:fixed;bottom:18px;right:18px;z-index:10;padding:14px 20px;border-radius:8px;background:#102c36;border:1px solid #6fffe944;color:#b8efdc;text-decoration:none">← 返回潜艇</a><header class="wrap"><div class="brand"><i></i>ABYSSAL LIGHT</div><nav><a href="index.html">返回潜艇</a><a href="#atlas">图鉴</a><a href="#about">关于微光</a></nav></header>
+  <a class="return" href="index.html">← 返回潜艇</a>
+
+  <header class="wrap">
+    <div class="brand"><i></i>ABYSSAL LIGHT</div>
+    <nav>
+      <a href="index.html">返回潜艇</a>
+      <a href="#atlas">观测图鉴</a>
+      <a href="#about">观察说明</a>
+    </nav>
+  </header>
+
   <main>
-    <section class="hero wrap" aria-labelledby="title"><div><div class="eyebrow">Ocean field note · 01</div><h1 id="title">微光<span>深处</span></h1><p class="intro">阳光止步之后，生命开始自己发光。沿着水深刻度下潜，认识那些把黑暗变成语言的深海居民。</p><a class="scroll" href="#atlas"><b>↓</b>开始下潜</a></div><div class="sonar" aria-label="声呐扫描动画"><i class="pulse"></i><i class="mark m1"></i><i class="mark m2"></i><i class="mark m3"></i></div></section>
-    <section class="explore" id="atlas"><div class="wrap"><div class="section-head"><h2>按深度寻找微光</h2><p>拖动刻度，筛选能够在对应深度附近遇见的发光生物。</p></div><div class="depth-control"><label for="depth">下潜深度</label><input id="depth" type="range" min="200" max="6000" step="100" value="2600"><output for="depth">2,600 m</output></div>
-      <div class="cards" id="cards">
-        <article class="card" data-min="200" data-max="1000"><span class="depth">200—1,000 M</span><i class="glow" style="--g:#78fbe8"></i><h3>灯笼鱼</h3><span class="latin">Myctophidae</span><p>腹部排列着精密的发光器，像一串低亮度信号灯。它们可能用光隐藏轮廓，也用来识别同伴。</p><span class="tag">反荫蔽伪装</span></article>
-        <article class="card" data-min="500" data-max="4000"><span class="depth">500—4,000 M</span><i class="glow" style="--g:#2a7fff"></i><h3>管水母</h3><span class="latin">Siphonophorae</span><p>不是单独一只动物，而是一整群高度分工的个体。受到扰动时，部分种类会亮起蓝绿光链。</p><span class="tag">群体生物</span></article>
-        <article class="card" data-min="1000" data-max="6000"><span class="depth">1,000—6,000 M</span><i class="glow" style="--g:#ff5bd8"></i><h3>深海龙鱼</h3><span class="latin">Stomiidae</span><p>有些种类能发出多数猎物看不见的红光，像在深海里打开一束私密手电。</p><span class="tag">红光视觉</span></article>
-        <article class="card" data-min="600" data-max="1800"><span class="depth">600—1,800 M</span><i class="glow" style="--g:#b5ff66"></i><h3>吸血鬼乌贼</h3><span class="latin">Vampyroteuthis infernalis</span><p>它没有墨囊，却能从触腕尖端释放发光黏液，形成短暂的闪烁云，干扰捕食者。</p><span class="tag">发光防御</span></article>
-        <article class="card" data-min="1000" data-max="3000"><span class="depth">1,000—3,000 M</span><i class="glow" style="--g:#57dcff"></i><h3>鮟鱇鱼</h3><span class="latin">Lophiiformes</span><p>头顶的“钓竿”末端住着发光细菌。那一点光既是诱饵，也是深海捕猎的精准工具。</p><span class="tag">共生发光</span></article>
-        <article class="card" data-min="800" data-max="4000"><span class="depth">800—4,000 M</span><i class="glow" style="--g:#fff7a8"></i><h3>栉水母</h3><span class="latin">Ctenophora</span><p>纤毛梳板会衍射环境光，部分种类也能产生蓝绿色生物光。彩虹并不等同于发光，却同样夺目。</p><span class="tag">光的折射</span></article>
-      </div><div class="empty" id="empty">这个深度附近暂无记录，再移动一下刻度。</div><div class="fact" id="about">生物发光是化学能转化为光能的过程，几乎不产生热，因此常被称为“冷光”。在深海，它可以用于捕猎、防御、伪装与交流。</div>
-    </div></section>
+    <section class="hero wrap">
+      <div>
+        <div class="eyebrow">Ocean field note · local archive</div>
+        <h1>观测<span>图鉴</span></h1>
+        <p class="intro">
+          每一次成功扫描都会留下记录。尚未发现的生命只保留一枚模糊信号；
+          当你在潜航中完成扫描，它的轮廓、资料与观察笔记会在这台设备上永久解锁。
+        </p>
+      </div>
+
+      <aside class="progress-panel" aria-label="图鉴进度">
+        <div class="progress-label">
+          <span>DISCOVERY PROGRESS</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-value">
+          <span id="progressCount">0</span>
+          <small>/ 6 已发现</small>
+        </div>
+        <div class="bar"><i id="progressBar"></i></div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>累计观测</small>
+            <strong id="totalObservations">0 次</strong>
+          </div>
+          <div class="stat">
+            <small>未发现</small>
+            <strong id="remainingCount">6 种</strong>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="explore" id="atlas">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>沿深度寻找微光</h2>
+          <p>拖动深度筛选对应海域。锁定记录只有在潜航中完成长按扫描后才会解锁。</p>
+        </div>
+
+        <div class="depth-control">
+          <label for="depth">下潜深度</label>
+          <input id="depth" type="range" min="200" max="6000" step="100" value="2600">
+          <output for="depth" id="depthOutput">2,600 m</output>
+        </div>
+
+        <div class="cards" id="cards"></div>
+        <div class="empty" id="empty">这个深度附近暂无目标记录，再移动一下刻度。</div>
+
+        <div class="fact" id="about">
+          图鉴数据仅保存在当前设备的浏览器中。重新开始一次潜航不会清空发现；
+          只有主动清除浏览器站点数据后，本地图鉴记录才会消失。
+        </div>
+      </div>
+    </section>
   </main>
-  <footer class="wrap"><strong>微光深处 · 深海观察笔记</strong><span>为好奇心保留一束光</span></footer>
-  <script>
-    const slider=document.querySelector('#depth'),out=document.querySelector('output'),cards=[...document.querySelectorAll('.card')],empty=document.querySelector('#empty');
-    function render(){const value=Number(slider.value),pct=(value-200)/58;out.value=value.toLocaleString('zh-CN')+' m';slider.style.setProperty('--fill',pct+'%');let shown=0;cards.forEach(card=>{const visible=value>=Number(card.dataset.min)&&value<=Number(card.dataset.max);card.hidden=!visible;if(visible)shown++});empty.classList.toggle('show',shown===0)}
-    slider.addEventListener('input',render);render();
+
+  <footer class="wrap">
+    <strong>微光深处 · 深海观察笔记</strong>
+    <span>扫描不是捕获，只是留下相遇的证据。</span>
+  </footer>
+
+  <script type="module">
+    import { CREATURE_DEFS } from './js/creatures.js';
+
+    const STORAGE_KEY = 'abyssal-progress';
+
+    const IMAGE_FALLBACKS = {
+      jellyfish: 'assets/jelly.webp',
+      isopod: 'assets/isopod.webp',
+      dragonfish: 'assets/dragon.webp',
+      squid: 'assets/squid.webp',
+      octopus: 'assets/octopus.webp',
+    };
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+
+        if (!raw) {
+          return {
+            unlocked: [],
+            observations: {},
+            totalObservations: 0,
+          };
+        }
+
+        const saved = JSON.parse(raw);
+
+        return {
+          unlocked: Array.isArray(saved.unlocked)
+            ? saved.unlocked
+            : [],
+
+          observations:
+            saved.observations &&
+            typeof saved.observations === 'object'
+              ? saved.observations
+              : {},
+
+          totalObservations:
+            Number(saved.totalObservations) || 0,
+        };
+      } catch (error) {
+        console.warn('[atlas] 无法读取本地图鉴', error);
+
+        return {
+          unlocked: [],
+          observations: {},
+          totalObservations: 0,
+        };
+      }
+    }
+
+    const progress = loadProgress();
+
+    const slider =
+      document.querySelector('#depth');
+
+    const depthOutput =
+      document.querySelector('#depthOutput');
+
+    const cards =
+      document.querySelector('#cards');
+
+    const empty =
+      document.querySelector('#empty');
+
+    const progressCount =
+      document.querySelector('#progressCount');
+
+    const progressPercent =
+      document.querySelector('#progressPercent');
+
+    const progressBar =
+      document.querySelector('#progressBar');
+
+    const totalObservations =
+      document.querySelector('#totalObservations');
+
+    const remainingCount =
+      document.querySelector('#remainingCount');
+
+
+    function isUnlocked(id) {
+      return progress.unlocked.includes(id);
+    }
+
+
+    function observationCount(id) {
+      return Number(progress.observations[id]) || 0;
+    }
+
+
+    function lanternVisual() {
+      return `
+        <div class="lantern-visual" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i>
+        </div>
+      `;
+    }
+
+
+    function creatureVisual(creature, unlocked) {
+      if (!unlocked) {
+        return `
+          <div class="visual">
+            <span class="locked-visual">?</span>
+          </div>
+        `;
+      }
+
+      if (creature.id === 'lanternfish') {
+        return `
+          <div class="visual">
+            ${lanternVisual()}
+          </div>
+        `;
+      }
+
+      const image =
+        creature.image ||
+        IMAGE_FALLBACKS[creature.id];
+
+      return `
+        <div class="visual">
+          <img
+            src="${image}"
+            alt="${creature.name}"
+          >
+        </div>
+      `;
+    }
+
+
+    function createCard(creature) {
+      const unlocked =
+        isUnlocked(creature.id);
+
+      const article =
+        document.createElement('article');
+
+      article.className =
+        `card ${unlocked ? 'unlocked' : 'locked'}`;
+
+      article.dataset.min =
+        creature.minDepth;
+
+      article.dataset.max =
+        creature.maxDepth;
+
+      article.dataset.id =
+        creature.id;
+
+      const count =
+        observationCount(creature.id);
+
+      const name =
+        unlocked
+          ? creature.name
+          : '???';
+
+      const latin =
+        unlocked
+          ? creature.latin
+          : 'UNRECORDED';
+
+      const description =
+        unlocked
+          ? creature.description
+          : '尚未取得完整观测记录。继续下潜，在有效距离内完成长按扫描。';
+
+      const note =
+        unlocked
+          ? creature.note
+          : '观察笔记将在首次扫描成功后解锁。';
+
+      article.innerHTML = `
+        <div class="card-head">
+          <span class="depth">
+            ${creature.minDepth.toLocaleString('zh-CN')}
+            —
+            ${creature.maxDepth.toLocaleString('zh-CN')} M
+          </span>
+
+          <span class="status">
+            ${unlocked ? '已记录' : '未发现'}
+          </span>
+        </div>
+
+        ${creatureVisual(creature, unlocked)}
+
+        <h3>${name}</h3>
+        <span class="latin">${latin}</span>
+
+        <p class="description">
+          ${description}
+        </p>
+
+        <div class="note">
+          ${note}
+        </div>
+
+        <div class="observation">
+          <span>OBSERVATIONS</span>
+          <strong>${unlocked ? `${count} 次` : '—'}</strong>
+        </div>
+      `;
+
+      return article;
+    }
+
+
+    function buildCards() {
+      cards.innerHTML = '';
+
+      for (const creature of CREATURE_DEFS) {
+        cards.appendChild(
+          createCard(creature)
+        );
+      }
+    }
+
+
+    function renderProgress() {
+      const total =
+        CREATURE_DEFS.length;
+
+      const unlockedCount =
+        CREATURE_DEFS.filter(
+          creature =>
+            isUnlocked(creature.id)
+        ).length;
+
+      const percent =
+        total
+          ? Math.round(
+              unlockedCount / total * 100
+            )
+          : 0;
+
+      progressCount.textContent =
+        unlockedCount;
+
+      progressPercent.textContent =
+        `${percent}%`;
+
+      progressBar.style.width =
+        `${percent}%`;
+
+      totalObservations.textContent =
+        `${progress.totalObservations} 次`;
+
+      remainingCount.textContent =
+        `${Math.max(0,total-unlockedCount)} 种`;
+    }
+
+
+    function renderDepthFilter() {
+      const value =
+        Number(slider.value);
+
+      const percent =
+        (value - 200) /
+        (6000 - 200) *
+        100;
+
+      depthOutput.value =
+        `${value.toLocaleString('zh-CN')} m`;
+
+      slider.style.setProperty(
+        '--fill',
+        `${percent}%`
+      );
+
+      let shown = 0;
+
+      for (
+        const card of
+        document.querySelectorAll('.card')
+      ) {
+        const visible =
+          value >= Number(card.dataset.min) &&
+          value <= Number(card.dataset.max);
+
+        card.hidden = !visible;
+
+        if (visible) shown++;
+      }
+
+      empty.classList.toggle(
+        'show',
+        shown === 0
+      );
+    }
+
+
+    buildCards();
+    renderProgress();
+    renderDepthFilter();
+
+    slider.addEventListener(
+      'input',
+      renderDepthFilter
+    );
+
+    /*
+     * 如果以后做成不离开页面也能扫描，
+     * storage 变化时图鉴也可以自动刷新。
+     */
+    window.addEventListener(
+      'storage',
+      () => location.reload()
+    );
   </script>
 </body>
 </html>
-
