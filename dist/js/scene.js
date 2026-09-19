@@ -1,8 +1,20 @@
 import { state, resetState } from './state.js';
 import { updateWorld, renderWorld } from './world.js';
 import { bindControls } from './controls.js';
-import { updateEnergy, setLight, energyMessage, renderEnergy } from './energy.js';
-import { checkObstacles, collideWithObstacle } from './obstacles.js';
+import {
+  updateEnergy,
+  setLight,
+  energyMessage,
+  renderEnergy
+} from './energy.js';
+import {
+  initObstacles,
+  resetObstacles,
+  updateObstacles,
+  renderObstacles,
+  checkObstacles,
+  collideWithObstacle
+} from './obstacles.js';
 import { resetCreatures, updateCreatures } from './creatures.js';
 import { resetScanner, updateScanner } from './scanner.js';
 import { resetDiscoveries } from './discoveries.js';
@@ -29,6 +41,8 @@ const ui = {
   stops: [...document.querySelectorAll('.stop')],
 };
 
+initObstacles(ui.root);
+
 function announce(text) {
   ui.announcement.textContent = text;
 }
@@ -40,24 +54,29 @@ function setMessage(text) {
 function render() {
   ui.root.classList.toggle('paused', state.paused);
   renderWorld(ui);
+  renderObstacles();
   renderEnergy(ui);
 }
 
 function startDive() {
   resetState(Number(ui.lightControl.value));
+  resetObstacles();
   resetCreatures();
   resetScanner();
   resetDiscoveries();
 
   ui.root.dataset.mode = 'game';
-  ui.connection.innerHTML = '<i></i>微光号 · 潜航中';
+  ui.connection.innerHTML = '<i></i>微光号 · 横向潜航中';
   ui.preparation.hidden = true;
   ui.subLabel.hidden = true;
   ui.scene.hidden = false;
-  ui.pauseButton.textContent = '暂停下潜';
+
+  ui.pauseButton.textContent = '暂停潜航';
   ui.pauseButton.setAttribute('aria-pressed', 'false');
-  setMessage('系统稳定，缓慢下潜中');
-  announce('潜航开始。使用左右方向键或 A、D 键驾驶潜水器。');
+
+  setMessage('横向航行启动 · 使用上下左右躲避障碍物');
+  announce('潜航开始。使用方向键或 W、A、S、D 键上下左右驾驶潜水器。');
+
   render();
 
   cancelAnimationFrame(state.frame);
@@ -67,22 +86,45 @@ function startDive() {
 function returnHome() {
   state.mode = 'ready';
   state.paused = false;
+  state.moveX = 0;
+  state.moveY = 0;
+
   cancelAnimationFrame(state.frame);
+
   ui.root.dataset.mode = 'ready';
   ui.root.classList.remove('paused', 'low-energy', 'bump');
   ui.connection.innerHTML = '<i></i>微光号 · 准备出发';
   ui.preparation.hidden = false;
   ui.subLabel.hidden = false;
   ui.scene.hidden = true;
+
   document.title = '微光深处 · 潜航准备';
   ui.launchButton.focus();
+
+  render();
 }
 
 function togglePause() {
   state.paused = !state.paused;
-  ui.pauseButton.textContent = state.paused ? '继续下潜' : '暂停下潜';
-  ui.pauseButton.setAttribute('aria-pressed', String(state.paused));
-  announce(state.paused ? '潜航已暂停。' : '继续缓慢下潜。');
+
+  if (state.paused) {
+    state.moveX = 0;
+    state.moveY = 0;
+  }
+
+  ui.pauseButton.textContent =
+    state.paused ? '继续潜航' : '暂停潜航';
+
+  ui.pauseButton.setAttribute(
+    'aria-pressed',
+    String(state.paused)
+  );
+
+  announce(
+    state.paused
+      ? '潜航已暂停。'
+      : '继续潜航。使用上下左右方向躲避障碍物。'
+  );
 }
 
 function handleLightChange(value) {
@@ -101,21 +143,42 @@ function handleCollision(obstacle) {
 
 function gameLoop(now) {
   if (state.mode !== 'game') return;
-  const dt = Math.min(.05, (now - state.last) / 1000 || 0);
+
+  const dt = Math.min(
+    0.05,
+    (now - state.last) / 1000 || 0
+  );
+
   state.last = now;
 
   if (!state.paused) {
     updateEnergy(dt, ui.lightControl);
-    const { previousDepth, reachedBed } = updateWorld(dt);
-    checkObstacles(previousDepth, handleCollision);
+
+    const { reachedBed } = updateWorld(dt);
+
+    updateObstacles(dt);
+    checkObstacles(handleCollision);
+
     updateCreatures(dt);
     updateScanner(dt);
-    setMessage(energyMessage());
+
+    if (performance.now() >= state.collisionUntil) {
+      const energyText = energyMessage();
+
+      setMessage(
+        energyText === '系统稳定，缓慢下潜中'
+          ? '系统稳定 · 四向驾驶正常'
+          : energyText
+      );
+    }
 
     if (reachedBed) {
       state.paused = true;
-      setMessage('已抵达海床 · 可以自由返航');
-      announce('已抵达六千米海床。没有失败，可以继续停留或自由返航。');
+      state.moveX = 0;
+      state.moveY = 0;
+
+      setMessage('已抵达 6,000 m 航程终点 · 可以自由返航');
+      announce('已完成六千米深海航程。可以停留观察或自由返航。');
     }
   }
 
@@ -125,8 +188,8 @@ function gameLoop(now) {
 
 ui.launchButton.addEventListener('click', startDive);
 ui.returnButton.addEventListener('click', returnHome);
+
 bindControls({
-  root: ui.root,
   pauseButton: ui.pauseButton,
   lightControl: ui.lightControl,
   onPause: togglePause,
