@@ -809,3 +809,613 @@ footer {
     transition-duration: .001ms !important;
   }
 }
+
+/* =========================================================
+   B: Creature System
+   ========================================================= */
+
+.creature-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+/*
+ * 游戏开始后隐藏原 HTML 里仅作为背景展示的静态生物，
+ * 改由 creatures.js 动态控制。
+ */
+.voyage[data-mode="game"] .landscape > .creature {
+  opacity: 0;
+}
+
+.wild-creature {
+  position: absolute;
+  width: var(--creature-size, 150px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition:
+    opacity .25s ease,
+    filter .25s ease;
+}
+
+.wild-creature[hidden] {
+  display: none;
+}
+
+.wild-creature img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  transition:
+    opacity .35s ease,
+    filter .35s ease;
+}
+
+.bio-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(
+      circle,
+      rgba(126, 255, 237, .7),
+      rgba(87, 220, 255, .18) 30%,
+      transparent 70%
+    );
+  filter: blur(11px);
+  opacity: .3;
+  transition: opacity .3s ease;
+}
+
+.wild-creature.is-lit .bio-glow {
+  filter: blur(14px);
+}
+
+
+/* 灯笼鱼群 */
+
+.lantern-school {
+  position: relative;
+  width: 100%;
+  height: 85px;
+}
+
+.lantern-school i {
+  position: absolute;
+  width: 18px;
+  height: 7px;
+  border-radius: 70% 45% 45% 70%;
+
+  background:
+    rgba(115, 255, 232, .2);
+
+  box-shadow:
+    0 0 5px rgba(111, 255, 233, .9),
+    0 0 13px rgba(68, 210, 255, .55);
+
+  opacity: .75;
+}
+
+/*
+ * 部分浏览器暂时不支持 CSS mod()，
+ * 因此再给每条鱼一个兼容位置。
+ */
+
+.lantern-school i:nth-child(1) {
+  left: 5%;
+  top: 35%;
+}
+
+.lantern-school i:nth-child(2) {
+  left: 20%;
+  top: 15%;
+}
+
+.lantern-school i:nth-child(3) {
+  left: 33%;
+  top: 47%;
+}
+
+.lantern-school i:nth-child(4) {
+  left: 48%;
+  top: 27%;
+}
+
+.lantern-school i:nth-child(5) {
+  left: 61%;
+  top: 53%;
+}
+
+.lantern-school i:nth-child(6) {
+  left: 75%;
+  top: 20%;
+}
+
+.lantern-school i:nth-child(7) {
+  left: 87%;
+  top: 42%;
+}
+
+.wild-creature[data-creature-id="lanternfish"].is-lit
+.lantern-school i {
+  width: 22px;
+  height: 9px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(150, 230, 220, .75),
+      rgba(57, 125, 145, .45)
+    );
+
+  box-shadow:
+    0 0 6px rgba(111, 255, 233, 1),
+    0 0 18px rgba(68, 210, 255, .6);
+}
+
+
+/* 每种生物的基础尺寸微调 */
+
+.wild-creature[data-creature-id="jellyfish"] {
+  width: clamp(95px, 11vw, 155px);
+}
+
+.wild-creature[data-creature-id="isopod"] {
+  width: clamp(100px, 10vw, 145px);
+}
+
+.wild-creature[data-creature-id="dragonfish"] {
+  width: clamp(125px, 14vw, 190px);
+}
+
+.wild-creature[data-creature-id="squid"] {
+  width: clamp(110px, 12vw, 175px);
+}
+
+.wild-creature[data-creature-id="octopus"] {
+  width: clamp(110px, 12vw, 170px);
+}
+
+
+@media (max-width: 760px) {
+  .wild-creature {
+    transform:
+      translate(-50%, -50%)
+      scale(.82);
+  }
+
+  .lantern-school {
+    width: 125px;
+  }
+}
+
+
+
+/* =========================================================
+   B: Scanner System
+   ========================================================= */
+
+.scanner-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+
+/* 扫描范围 */
+
+.scan-reticle {
+  position: absolute;
+
+  transform:
+    translate(-50%, -50%);
+
+  border:
+    1px solid rgba(169, 245, 220, .2);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      transparent 56%,
+      rgba(169, 245, 220, .025) 57%,
+      rgba(169, 245, 220, .05) 100%
+    );
+
+  box-shadow:
+    inset 0 0 35px
+    rgba(111, 255, 233, .035);
+
+  transition:
+    border-color .25s ease,
+    box-shadow .25s ease,
+    opacity .25s ease;
+
+  pointer-events: none;
+}
+
+
+/* 中央小准星 */
+
+.scan-reticle-dot {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 10px;
+  height: 10px;
+
+  transform:
+    translate(-50%, -50%);
+
+  border:
+    1px solid rgba(169, 245, 220, .55);
+
+  border-radius: 50%;
+}
+
+
+.scan-reticle-dot::before,
+.scan-reticle-dot::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  background:
+    rgba(169, 245, 220, .55);
+
+  transform:
+    translate(-50%, -50%);
+}
+
+
+.scan-reticle-dot::before {
+  width: 28px;
+  height: 1px;
+}
+
+
+.scan-reticle-dot::after {
+  width: 1px;
+  height: 28px;
+}
+
+
+/* 已经进入扫描距离 */
+
+.scan-reticle.in-range {
+  border-color:
+    rgba(169, 245, 220, .65);
+
+  box-shadow:
+    inset 0 0 45px
+    rgba(111, 255, 233, .07),
+
+    0 0 24px
+    rgba(111, 255, 233, .08);
+}
+
+
+/* 正在扫描 */
+
+.scan-reticle.is-scanning {
+  border-color:
+    rgba(169, 245, 220, .95);
+
+  animation:
+    scanner-pulse 1.3s ease-in-out infinite;
+}
+
+
+/* 扫描完成 */
+
+.scan-reticle.scan-success {
+  border-color:
+    #a9f5dc;
+
+  box-shadow:
+    0 0 35px
+    rgba(169, 245, 220, .35),
+
+    inset 0 0 50px
+    rgba(169, 245, 220, .1);
+}
+
+
+/* 控制面板 */
+
+.scanner-panel {
+  position: absolute;
+
+  left: 50%;
+  bottom: 205px;
+
+  transform:
+    translateX(-50%);
+
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+
+  min-width: 330px;
+
+  padding:
+    12px 14px
+    12px 18px;
+
+  border:
+    1px solid
+    rgba(181, 228, 227, .16);
+
+  border-radius: 12px;
+
+  background:
+    rgba(3, 19, 27, .78);
+
+  backdrop-filter:
+    blur(12px);
+
+  box-shadow:
+    0 14px 45px
+    rgba(0, 0, 0, .24);
+
+  pointer-events: auto;
+}
+
+
+.scanner-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+
+.scanner-copy small {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color:
+    rgba(169, 245, 220, .65);
+
+  font-size: 8px;
+
+  letter-spacing: 2px;
+}
+
+
+.scanner-name {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #effbf5;
+
+  font-size: 13px;
+
+  font-weight: 500;
+
+  letter-spacing: 2px;
+}
+
+
+.scanner-hint {
+  display: block;
+
+  max-width: 190px;
+
+  color: #8fadb1;
+
+  font-size: 10px;
+
+  line-height: 1.45;
+}
+
+
+/* 长按按钮 */
+
+.scan-hold-button {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 130px;
+
+  padding: 7px 10px;
+
+  border:
+    1px solid
+    rgba(169, 245, 220, .3);
+
+  border-radius: 9px;
+
+  background:
+    rgba(8, 38, 49, .8);
+
+  color: #dffbf2;
+
+  touch-action: none;
+
+  user-select: none;
+
+  -webkit-user-select: none;
+}
+
+
+.scan-hold-button:disabled {
+  cursor: default;
+
+  opacity: .36;
+
+  filter: none;
+}
+
+
+.scan-hold-button em {
+  font-size: 10px;
+
+  font-style: normal;
+
+  letter-spacing: 1px;
+}
+
+
+.scan-hold-button > small {
+  color:
+    rgba(169, 245, 220, .5);
+
+  font-size: 8px;
+}
+
+
+/* 圆形扫描进度 */
+
+.scan-progress-ring {
+  --scan-angle: 0deg;
+
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  flex:
+    0 0 42px;
+
+  border-radius: 50%;
+
+  background:
+    conic-gradient(
+      #a9f5dc
+      var(--scan-angle),
+
+      rgba(255, 255, 255, .1)
+      var(--scan-angle)
+    );
+}
+
+
+.scan-progress-ring::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 4px;
+
+  border-radius: 50%;
+
+  background: #08212a;
+}
+
+
+.scan-progress-value {
+  position: relative;
+
+  z-index: 1;
+
+  font-size: 9px;
+
+  font-weight: 400;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+.scan-hold-button.is-scanning {
+  border-color:
+    rgba(169, 245, 220, .75);
+
+  box-shadow:
+    0 0 24px
+    rgba(111, 255, 233, .12);
+}
+
+
+@keyframes scanner-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0
+      rgba(169, 245, 220, .14);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 14px
+      rgba(169, 245, 220, 0);
+  }
+}
+
+
+/* 手机 */
+
+@media (max-width: 760px) {
+  .scanner-panel {
+    left: 7%;
+    right: 7%;
+    bottom: 305px;
+
+    transform: none;
+
+    min-width: 0;
+
+    gap: 10px;
+
+    padding: 10px 11px;
+  }
+
+  .scanner-copy small {
+    font-size: 7px;
+  }
+
+  .scanner-name {
+    font-size: 11px;
+  }
+
+  .scanner-hint {
+    max-width: 135px;
+
+    font-size: 9px;
+  }
+
+  .scan-hold-button {
+    min-width: 116px;
+
+    padding: 6px 8px;
+
+    gap: 7px;
+  }
+
+  .scan-progress-ring {
+    width: 38px;
+    height: 38px;
+
+    flex-basis: 38px;
+  }
+
+  .scan-hold-button > small {
+    display: none;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-reticle.is-scanning {
+    animation: none;
+  }
+}
