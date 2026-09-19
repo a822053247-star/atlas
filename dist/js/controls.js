@@ -1,120 +1,218 @@
+// dist/js/controls.js
+
 import { state } from './state.js';
 
 const keys = {
   left: false,
   right: false,
+  up: false,
+  down: false,
 };
 
-function updateDirection() {
+function updateAxes() {
+  // 左右
   if (keys.left && !keys.right) {
-    state.direction = -1;
+    state.moveX = -1;
   } else if (keys.right && !keys.left) {
-    state.direction = 1;
+    state.moveX = 1;
   } else {
-    state.direction = 0;
+    state.moveX = 0;
+  }
+
+  // 上下
+  if (keys.up && !keys.down) {
+    state.moveY = -1;
+  } else if (keys.down && !keys.up) {
+    state.moveY = 1;
+  } else {
+    state.moveY = 0;
   }
 }
 
+function clearControls() {
+  keys.left = false;
+  keys.right = false;
+  keys.up = false;
+  keys.down = false;
+
+  updateAxes();
+}
+
+function handleKey(code, pressed) {
+  switch (code) {
+    case 'ArrowLeft':
+    case 'KeyA':
+      keys.left = pressed;
+      break;
+
+    case 'ArrowRight':
+    case 'KeyD':
+      keys.right = pressed;
+      break;
+
+    case 'ArrowUp':
+    case 'KeyW':
+      keys.up = pressed;
+      break;
+
+    case 'ArrowDown':
+    case 'KeyS':
+      keys.down = pressed;
+      break;
+
+    default:
+      return false;
+  }
+
+  updateAxes();
+
+  return true;
+}
+
 export function bindControls({
-  root,
   pauseButton,
   lightControl,
   onPause,
   onLightChange
 }) {
+  // ============================================================
+  // 灯光
+  // ============================================================
 
   lightControl.addEventListener('input', () => {
     onLightChange(lightControl.value);
   });
 
-  // ============================
+  // ============================================================
   // 键盘
-  // ============================
+  //
+  // 使用 event.code，而不是 event.key。
+  // 这样即使开启中文输入法，W / A / S / D 也可以正常工作。
+  // ============================================================
 
-  addEventListener('keydown', event => {
-    if (state.mode !== 'game') return;
+  window.addEventListener(
+    'keydown',
+    event => {
+      if (state.mode !== 'game') {
+        return;
+      }
 
-    if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') {
-      event.preventDefault();
-      keys.left = true;
-      updateDirection();
-    }
+      if (handleKey(event.code, true)) {
+        event.preventDefault();
+        return;
+      }
 
-    if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
-      event.preventDefault();
-      keys.right = true;
-      updateDirection();
-    }
+      if (event.code === 'Space') {
+        event.preventDefault();
+        onPause();
+      }
+    },
+    { passive: false }
+  );
 
-    if (event.key === ' ') {
-      event.preventDefault();
-      onPause();
-    }
-  });
+  window.addEventListener(
+    'keyup',
+    event => {
+      if (handleKey(event.code, false)) {
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
 
-  addEventListener('keyup', event => {
+  // ============================================================
+  // 防止切换窗口以后按键卡住
+  // ============================================================
 
-    if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') {
-      keys.left = false;
-      updateDirection();
-    }
+  window.addEventListener('blur', clearControls);
 
-    if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
-      keys.right = false;
-      updateDirection();
-    }
-
-  });
-
-  // ============================
-  // 鼠标
-  // ============================
-
-  root.addEventListener('pointermove', event => {
-    if (
-      state.mode === 'game' &&
-      event.pointerType === 'mouse' &&
-      !event.target.closest('button,input,a')
-    ) {
-      state.x = Math.max(
-        10,
-        Math.min(90, event.clientX / innerWidth * 100)
-      );
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearControls();
     }
   });
 
-  // ============================
-  // 手机左右按钮
-  // ============================
+  // ============================================================
+  // 手机 / 平板四方向控制
+  // ============================================================
 
-  for (const [id, direction] of [
-    ['move-left', -1],
-    ['move-right', 1]
-  ]) {
+  const buttons = [
+    ['move-left', 'left'],
+    ['move-right', 'right'],
+    ['move-up', 'up'],
+    ['move-down', 'down'],
+  ];
 
+  for (const [id, direction] of buttons) {
     const button = document.querySelector(`#${id}`);
 
-    button.addEventListener('pointerdown', event => {
-      event.preventDefault();
-
-      button.setPointerCapture(event.pointerId);
-
-      if (direction === -1) keys.left = true;
-      if (direction === 1) keys.right = true;
-
-      updateDirection();
-    });
-
-    function release() {
-      if (direction === -1) keys.left = false;
-      if (direction === 1) keys.right = false;
-
-      updateDirection();
+    if (!button) {
+      continue;
     }
 
-    button.addEventListener('pointerup', release);
-    button.addEventListener('pointercancel', release);
+    const press = event => {
+      if (state.mode !== 'game') {
+        return;
+      }
+
+      event.preventDefault();
+
+      keys[direction] = true;
+
+      updateAxes();
+
+      if (
+        typeof button.setPointerCapture === 'function' &&
+        event.pointerId !== undefined
+      ) {
+        try {
+          button.setPointerCapture(event.pointerId);
+        } catch {
+          // 某些移动浏览器不支持时直接忽略
+        }
+      }
+    };
+
+    const release = event => {
+      if (event) {
+        event.preventDefault();
+      }
+
+      keys[direction] = false;
+
+      updateAxes();
+    };
+
+    button.addEventListener(
+      'pointerdown',
+      press,
+      { passive: false }
+    );
+
+    button.addEventListener(
+      'pointerup',
+      release,
+      { passive: false }
+    );
+
+    button.addEventListener(
+      'pointercancel',
+      release,
+      { passive: false }
+    );
+
+    button.addEventListener(
+      'lostpointercapture',
+      release
+    );
   }
 
-  pauseButton.addEventListener('click', onPause);
+  // ============================================================
+  // 暂停
+  // ============================================================
+
+  pauseButton.addEventListener('click', () => {
+    clearControls();
+    onPause();
+  });
 }
