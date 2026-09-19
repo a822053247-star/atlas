@@ -33,6 +33,8 @@ const ui = {
   descentBar: document.querySelector('#descent-bar'),
   energyEl: document.querySelector('#energy'),
   energyBar: document.querySelector('#energy-bar'),
+  durabilityEl: document.querySelector('#durability'),
+  durabilityBar: document.querySelector('#durability-bar'),
   lightControl: document.querySelector('#light-control'),
   lightValue: document.querySelector('#light-value'),
   systemMessage: document.querySelector('#system-message'),
@@ -49,6 +51,22 @@ function announce(text) {
 
 function setMessage(text) {
   ui.systemMessage.textContent = text;
+}
+
+function normalSystemMessage() {
+  if (state.durability <= 0) {
+    return '耐久归零 · 应急结构维持，可继续探索';
+  }
+
+  if (state.durability <= 30) {
+    return `耐久偏低 ${Math.ceil(state.durability)}% · 谨慎驾驶`;
+  }
+
+  const energyText = energyMessage();
+
+  return energyText === '系统稳定，缓慢下潜中'
+    ? '系统稳定 · 四向驾驶正常'
+    : energyText;
 }
 
 function render() {
@@ -88,11 +106,19 @@ function returnHome() {
   state.paused = false;
   state.moveX = 0;
   state.moveY = 0;
+  state.vx = 0;
+  state.vy = 0;
 
   cancelAnimationFrame(state.frame);
 
   ui.root.dataset.mode = 'ready';
-  ui.root.classList.remove('paused', 'low-energy', 'bump');
+  ui.root.classList.remove(
+    'paused',
+    'low-energy',
+    'bump',
+    'damaged',
+    'critical-damage'
+  );
   ui.connection.innerHTML = '<i></i>微光号 · 准备出发';
   ui.preparation.hidden = false;
   ui.subLabel.hidden = false;
@@ -110,6 +136,8 @@ function togglePause() {
   if (state.paused) {
     state.moveX = 0;
     state.moveY = 0;
+    state.vx = 0;
+    state.vy = 0;
   }
 
   ui.pauseButton.textContent =
@@ -163,19 +191,15 @@ function gameLoop(now) {
     updateScanner(dt);
 
     if (performance.now() >= state.collisionUntil) {
-      const energyText = energyMessage();
-
-      setMessage(
-        energyText === '系统稳定，缓慢下潜中'
-          ? '系统稳定 · 四向驾驶正常'
-          : energyText
-      );
+      setMessage(normalSystemMessage());
     }
 
     if (reachedBed) {
       state.paused = true;
       state.moveX = 0;
       state.moveY = 0;
+      state.vx = 0;
+      state.vy = 0;
 
       setMessage('已抵达 6,000 m 航程终点 · 可以自由返航');
       announce('已完成六千米深海航程。可以停留观察或自由返航。');

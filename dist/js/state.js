@@ -1,8 +1,15 @@
 // 全局运行时状态。各模块共享这一份状态，不在这里保存 DOM 引用。
+export const PLAY_BOUNDS = {
+  left: 12,
+  right: 88,
+  top: 12,
+  bottom: 88,
+};
+
 export const state = {
   mode: 'ready',
 
-  // 航程深度：仍然用于四段海域的推进。
+  // 航程深度：用于四段海域推进与难度增长。
   depth: 0,
 
   // 潜艇在横屏画面中的位置（百分比）。
@@ -13,16 +20,23 @@ export const state = {
   moveX: 0,
   moveY: 0,
 
-  // 潜艇四向移动速度。
-  horizontalSpeed: 34,
-  verticalSpeed: 30,
+  // 惯性速度：单位为“屏幕百分比 / 秒”。
+  vx: 0,
+  vy: 0,
+
+  // 水下驾驶参数。
+  acceleration: 125,
+  drag: 4.2,
+  maxHorizontalSpeed: 30,
+  maxVerticalSpeed: 24,
 
   // 航程自动推进速度（m/s）。
   progressSpeed: 22,
-
-  // 世界横向滚动速度，供障碍物等模块参考。
-  scrollSpeed: 7.5,
   worldTime: 0,
+
+  // 潜艇耐久。降到 0 也不会 Game Over，只进入严重受损状态。
+  durability: 100,
+  maxDurability: 100,
 
   energy: 100,
   light: 70,
@@ -43,12 +57,19 @@ export function resetState(light = 70) {
 
   state.moveX = 0;
   state.moveY = 0;
+  state.vx = 0;
+  state.vy = 0;
 
-  state.horizontalSpeed = 34;
-  state.verticalSpeed = 30;
+  state.acceleration = 125;
+  state.drag = 4.2;
+  state.maxHorizontalSpeed = 30;
+  state.maxVerticalSpeed = 24;
+
   state.progressSpeed = 22;
-  state.scrollSpeed = 7.5;
   state.worldTime = 0;
+
+  state.durability = 100;
+  state.maxDurability = 100;
 
   state.energy = 100;
   state.light = light;
