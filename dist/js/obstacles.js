@@ -1,7 +1,7 @@
-import { state } from './state.js';
+import { state, PLAY_BOUNDS } from './state.js';
 
 // 横屏模式下，障碍物从右侧向左移动。
-// x / y 都是屏幕百分比坐标。
+// speed 是基础速度；随着深度增加，会再乘以难度系数。
 const obstacleBlueprints = [
   { id: 1, x: 112, y: 30, size: 110, speed: 7.8, asset: 'cliff.webp' },
   { id: 2, x: 145, y: 70, size: 126, speed: 6.7, asset: 'reef.webp' },
@@ -16,20 +16,31 @@ const obstacleBlueprints = [
 const obstacles = obstacleBlueprints.map(item => ({
   ...item,
   startX: item.x,
+  startY: item.y,
   hitUntil: 0,
   element: null,
 }));
 
 let obstacleLayer = null;
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
 function rightmostObstacleX() {
   return Math.max(...obstacles.map(obstacle => obstacle.x));
 }
 
 function nextLane(id) {
-  const lanes = [24, 38, 52, 66, 78, 31, 60, 72];
+  const lanes = [22, 34, 47, 60, 74, 28, 55, 79];
   const cycle = Math.floor(state.worldTime / 18);
   return lanes[(id + cycle) % lanes.length];
+}
+
+function depthSpeedFactor() {
+  // 0m = 1.0 倍，6000m = 1.75 倍。
+  const progress = clamp(state.depth / 6000, 0, 1);
+  return 1 + progress * 0.75;
 }
 
 export function initObstacles(root) {
@@ -80,11 +91,14 @@ export function initObstacles(root) {
 export function resetObstacles() {
   obstacles.forEach(obstacle => {
     obstacle.x = obstacle.startX;
+    obstacle.y = obstacle.startY;
     obstacle.hitUntil = 0;
   });
 }
 
 export function updateObstacles(dt) {
+  const speedFactor = depthSpeedFactor();
+
   for (const obstacle of obstacles) {
     const collisionSlowdown =
       performance.now() < state.collisionUntil
@@ -92,7 +106,10 @@ export function updateObstacles(dt) {
         : 1;
 
     obstacle.x -=
-      obstacle.speed * collisionSlowdown * dt;
+      obstacle.speed *
+      speedFactor *
+      collisionSlowdown *
+      dt;
 
     // 完全离开左侧后，重新排到所有障碍物的右边。
     if (obstacle.x < -16) {
@@ -119,8 +136,11 @@ export function renderObstacles() {
     obstacle.element.style.left = `${obstacle.x}%`;
     obstacle.element.style.top = `${obstacle.y}%`;
 
-    // 靠近画面左侧时略微降低亮度，增加空间层次。
-    const opacity = Math.max(0.45, Math.min(1, (obstacle.x + 20) / 55));
+    const opacity = Math.max(
+      0.45,
+      Math.min(1, (obstacle.x + 20) / 55)
+    );
+
     obstacle.element.style.opacity = String(opacity);
   });
 }
@@ -134,7 +154,6 @@ export function checkObstacles(onCollision) {
     const horizontalDistance = Math.abs(state.x - obstacle.x);
     const verticalDistance = Math.abs(state.y - obstacle.y);
 
-    // 潜艇已经缩小，因此碰撞盒也同步缩小。
     const hit =
       horizontalDistance < 7.2 &&
       verticalDistance < 10.5;
@@ -159,22 +178,73 @@ export function collideWithObstacle(
 
   state.collisionUntil = performance.now() + 900;
 
-  // 轻微向碰撞反方向推开，避免卡在障碍物内部。
+  // 碰撞伤害：低速擦碰约 10%，高速撞击最高约 20%。
+  // 0% 耐久不会结束游戏，只进入严重受损状态。
+  const impactSpeed = Math.hypot(
+    state.vx / state.maxHorizontalSpeed,
+    state.vy / state.maxVerticalSpeed
+  );
+
+  const speedDamage =
+    clamp(impactSpeed, 0, 1) * 3;
+
+  const sizeDamage =
+    clamp((obstacle.size - 90) / 40, 0, 1) * 2;
+
+  const damage = Math.round(
+    clamp(
+      3 + speedDamage + sizeDamage,
+      3,
+      8
+    )
+  );
+
+  state.durability = Math.max(
+    0,
+    state.durability - damage
+  );
+
   const pushX = state.x <= obstacle.x ? -2.4 : 2.4;
   const pushY = state.y <= obstacle.y ? -1.8 : 1.8;
 
-  state.x = Math.max(10, Math.min(88, state.x + pushX));
-  state.y = Math.max(18, Math.min(82, state.y + pushY));
+  state.x = clamp(
+    state.x + pushX,
+    PLAY_BOUNDS.left,
+    PLAY_BOUNDS.right
+  );
+
+  state.y = clamp(
+    state.y + pushY,
+    PLAY_BOUNDS.top,
+    PLAY_BOUNDS.bottom
+  );
+
+  // 碰撞会打断当前惯性，避免继续滑进岩层。
+  state.vx *= -0.22;
+  state.vy *= -0.22;
 
   root.style.setProperty('--bump-x', `${pushX * 2}px`);
   root.style.setProperty('--bump-y', `${pushY * 2}px`);
   root.classList.add('bump');
 
-  collisionNote.textContent = '碰到岩层 · 航速短暂降低';
+  collisionNote.textContent =
+    `碰到岩层 · 耐久 -${damage}%`;
   collisionNote.classList.add('show');
 
-  setMessage('轻微碰撞 · 调整上下左右位置');
-  announce('潜水器碰到了障碍物，请使用上下左右方向调整位置。');
+  if (state.durability <= 0) {
+    setMessage('耐久归零 · 应急结构维持，可继续探索');
+  } else if (state.durability <= 30) {
+    setMessage(`耐久仅剩 ${Math.ceil(state.durability)}% · 谨慎驾驶`);
+  } else {
+    setMessage(`轻微碰撞 · 耐久剩余 ${Math.ceil(state.durability)}%`);
+  }
+
+  announce(
+    `潜水器碰到了障碍物，耐久减少百分之${damage}。` +
+    (state.durability <= 0
+      ? '应急结构仍可维持潜航。'
+      : '请调整上下左右位置。')
+  );
 
   setTimeout(() => {
     root.classList.remove('bump');
