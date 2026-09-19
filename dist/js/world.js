@@ -13,9 +13,31 @@ export function zoneFor(depth) {
 
 export function updateWorld(dt) {
   const previousDepth = state.depth;
-  state.x = Math.max(12, Math.min(82, state.x + state.direction * 25 * dt));
-  state.depth = Math.min(6000, state.depth + (state.energy > 0 ? 17 : 8) * dt);
-  return { previousDepth, reachedBed: state.depth >= 6000 };
+
+  // 左右控制
+  state.x += state.direction * state.horizontalSpeed * dt;
+
+  // 限制潜艇不能跑出屏幕
+  state.x = Math.max(10, Math.min(90, state.x));
+
+  // 自动向下潜
+  let speed = state.descentSpeed;
+
+  // 没电以后下潜变慢
+  if (state.energy <= 0) {
+    speed *= 0.45;
+  }
+
+  state.depth += speed * dt;
+
+  if (state.depth >= 6000) {
+    state.depth = 6000;
+  }
+
+  return {
+    previousDepth,
+    reachedBed: state.depth >= 6000,
+  };
 }
 
 export function renderWorld({ root, depthEl, zoneDescription, descentBar, stops }) {
